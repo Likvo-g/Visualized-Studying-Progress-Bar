@@ -1,0 +1,1 @@
+Most of the code is AI-generated, i just made it to visualize my studying progress to study better.
