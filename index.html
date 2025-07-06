@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学习目标管理器</title>
+    <title>学习进度条</title>
     <style>
         * {
             margin: 0;
@@ -13,504 +13,414 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background: #1a1a1a;
+            color: #ffffff;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .add-goal-section {
-            padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .input-field {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .input-field label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .input-field input, .input-field select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-field input:focus, .input-field select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
+        /* 管理按钮样式 */
+        .manage-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
             border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-size: 1rem;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            font-size: 14px;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .add-btn:hover {
+        .manage-button:hover {
+            background: #555;
             transform: translateY(-2px);
         }
 
-        .goals-container {
-            padding: 30px;
-        }
-
-        .goal-item {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #2a2a2a;
+            border-left: 1px solid #444;
+            transition: right 0.3s ease;
+            z-index: 999;
             padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
+            overflow-y: auto;
         }
 
-        .goal-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        .sidebar.open {
+            right: 0;
         }
 
-        .goal-item.completed {
-            opacity: 0.8;
-            border-left: 5px solid #28a745;
-            background: #f8f9fa;
-        }
-
-        .goal-item.completed .goal-title {
-            text-decoration: line-through;
-            color: #6c757d;
-        }
-
-        .goal-header {
+        .sidebar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0;
-            width: 100%;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #444;
         }
 
-        .goal-main-content {
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* 进度条列表样式 */
+        .progress-list {
+            height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .progress-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+            min-height: 60px;
         }
 
-        .goal-info {
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-content {
+            flex: 1;
             display: flex;
             align-items: center;
             gap: 15px;
-            flex: 1;
-        }
-
-        .goal-text {
-            flex: 1;
-        }
-
-        .goal-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .goal-category {
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .goal-description {
-            color: #6c757d;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .progress-section {
-            margin-bottom: 20px;
         }
 
         .progress-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            min-width: 200px;
         }
 
-        .progress-text {
+        .progress-title {
+            font-size: 0.95rem;
             font-weight: 500;
-            color: #495057;
+            margin-bottom: 2px;
+            color: #ffffff;
         }
 
-        .progress-percentage {
-            font-weight: 600;
-            color: #667eea;
+        .progress-meta {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .progress-bar-container {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
         }
 
         .progress-bar {
             width: 100%;
-            height: 12px;
-            background: #e9ecef;
-            border-radius: 10px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
             overflow: hidden;
+            position: relative;
         }
 
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 10px;
+            border-radius: 4px;
             transition: width 0.5s ease;
+            position: relative;
         }
 
-        .goal-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .page-controls {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            width: 100%;
+        .progress-percentage {
+            position: absolute;
+            right: 0;
+            top: -20px;
+            font-size: 0.8rem;
+            color: #888;
         }
 
         .progress-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
-        .progress-btn {
-            background: #28a745;
-            color: white;
+        .control-btn {
+            background: #333;
             border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s ease;
+            font-size: 0.8rem;
+            transition: background 0.2s ease;
         }
 
-        .progress-btn:hover {
+        .control-btn:hover {
+            background: #555;
+        }
+
+        .control-btn.increase {
+            background: #28a745;
+        }
+
+        .control-btn.increase:hover {
             background: #218838;
         }
 
-        .progress-btn.decrease {
+        .control-btn.decrease {
             background: #ffc107;
+            color: #000;
         }
 
-        .progress-btn.decrease:hover {
+        .control-btn.decrease:hover {
             background: #e0a800;
         }
 
-        .delete-btn {
+        .control-btn.delete {
             background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s ease;
         }
 
-        .delete-btn:hover {
+        .control-btn.delete:hover {
             background: #c82333;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-
-        .empty-state img {
-            width: 120px;
-            opacity: 0.6;
+        /* 表单样式 */
+        .form-group {
             margin-bottom: 20px;
         }
 
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ccc;
         }
 
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .add-button {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 统计信息 */
         .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
             margin-bottom: 30px;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #444;
         }
 
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
 
-        .stat-number {
-            font-size: 2rem;
+        .stat-value {
+            font-size: 1.5rem;
             font-weight: 600;
             color: #667eea;
-            display: block;
         }
 
         .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-
-        .goal-line {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            flex-wrap: nowrap;
-        }
-
-        .goal-basic-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 250px;
-        }
-
-        .goal-progress-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 200px;
-        }
-
-        .goal-controls-inline {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .progress-bar-inline {
-            width: 120px;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill-inline {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .btn-small {
-            padding: 4px 8px;
             font-size: 0.8rem;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: #888;
+            margin-top: 2px;
         }
 
-        .btn-increase {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-increase:hover {
-            background: #218838;
-        }
-
-        .btn-decrease {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        .btn-decrease:hover {
-            background: #e0a800;
-        }
-
-        .btn-delete-small {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-delete-small:hover {
-            background: #c82333;
-        }
-
-        .page-input-small {
-            width: 60px;
-            padding: 2px 6px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
+        /* 空状态 */
+        .empty-state {
             text-align: center;
+            padding: 40px 20px;
+            color: #666;
         }
 
-        @media (max-width: 768px) {
-            .input-group {
-                flex-direction: column;
-            }
-            
-            .goal-header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .goal-controls {
-                justify-content: center;
-            }
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
 
-            .goal-line {
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100vw;
+                right: -100vw;
+            }
+            
+            .progress-item {
                 flex-direction: column;
-                gap: 10px;
                 align-items: stretch;
+                gap: 10px;
+                padding: 15px 0;
             }
             
-            .goal-basic-info {
-                min-width: unset;
-                width: 100%;
+            .progress-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
             }
             
-            .goal-progress-info {
-                min-width: unset;
-                width: 100%;
-                justify-content: space-between;
+            .progress-bar-container {
+                max-width: none;
             }
             
-            .goal-controls-inline {
+            .progress-controls {
                 justify-content: center;
-                flex-wrap: wrap;
             }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 学习目标管理器</h1>
-            <p>设定目标，追踪进度，成就更好的自己</p>
+    <!-- 管理按钮 -->
+    <button class="manage-button" onclick="toggleSidebar()">⚙️ 管理</button>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">学习目标管理</h2>
+            <button class="close-button" onclick="toggleSidebar()">×</button>
         </div>
 
-        <div class="add-goal-section">
-            <div class="input-group">
-                <div class="input-field">
-                    <label for="goalTitle">目标名称</label>
-                    <input type="text" id="goalTitle" placeholder="例如：学习JavaScript基础">
+        <!-- 统计信息 -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalGoals">0</div>
+                    <div class="stat-label">总目标</div>
                 </div>
-                <div class="input-field">
-                    <label for="goalCategory">分类</label>
-                    <select id="goalCategory">
-                        <option value="编程">编程</option>
-                        <option value="语言">语言</option>
-                        <option value="技能">技能</option>
-                        <option value="阅读">阅读</option>
-                        <option value="运动">运动</option>
-                        <option value="其他">其他</option>
-                    </select>
-                </div>
-            </div>
-            <div class="input-group">
-                <div class="input-field">
-                    <label for="goalDescription">目标描述（可选）</label>
-                    <input type="text" id="goalDescription" placeholder="描述你的学习目标...">
-                </div>
-            </div>
-            <div class="input-group">
-                <div class="input-field">
-                    <label for="totalPages">总页数</label>
-                    <input type="number" id="totalPages" placeholder="例如：300" min="1">
-                </div>
-                <div class="input-field">
-                    <label for="currentPage">当前页数</label>
-                    <input type="number" id="currentPage" placeholder="例如：50" min="0" value="0">
-                </div>
-            </div>
-            <button class="add-btn" onclick="addGoal()">✨ 添加目标</button>
-        </div>
-
-        <div class="goals-container">
-            <div class="stats" id="statsContainer">
-                <div class="stat-card">
-                    <span class="stat-number" id="totalGoals">0</span>
-                    <div class="stat-label">总目标数</div>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number" id="completedGoals">0</span>
+                <div class="stat-item">
+                    <div class="stat-value" id="completedGoals">0</div>
                     <div class="stat-label">已完成</div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-number" id="averageProgress">0%</span>
+                <div class="stat-item">
+                    <div class="stat-value" id="averageProgress">0%</div>
                     <div class="stat-label">平均进度</div>
                 </div>
             </div>
-            
-            <div id="goalsList">
-                <div class="empty-state">
-                    <div class="empty-icon">🎯</div>
-                    <h3>还没有学习目标</h3>
-                    <p>添加你的第一个学习目标开始旅程吧！</p>
+        </div>
+
+        <!-- 添加目标表单 -->
+        <form id="goalForm" onsubmit="return false;">
+            <div class="form-group">
+                <label class="form-label" for="goalTitle">目标名称</label>
+                <input type="text" id="goalTitle" class="form-input" placeholder="例如：学习JavaScript基础" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="goalCategory">分类</label>
+                <select id="goalCategory" class="form-select">
+                    <option value="编程">编程</option>
+                    <option value="语言">语言</option>
+                    <option value="技能">技能</option>
+                    <option value="阅读">阅读</option>
+                    <option value="运动">运动</option>
+                    <option value="数学">数学</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="goalDescription">目标描述（可选）</label>
+                <input type="text" id="goalDescription" class="form-input" placeholder="描述你的学习目标...">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="totalPages">总页数</label>
+                    <input type="number" id="totalPages" class="form-input" placeholder="300" min="1" required>
                 </div>
+                <div class="form-group">
+                    <label class="form-label" for="currentPage">当前页数</label>
+                    <input type="number" id="currentPage" class="form-input" placeholder="0" min="0" value="0">
+                </div>
+            </div>
+
+            <button type="submit" class="add-button" onclick="addGoal()">添加目标</button>
+        </form>
+    </div>
+
+    <!-- 主要内容区域 - 进度条列表 -->
+    <div class="progress-list">
+        <div id="goalsList">
+            <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <h3>还没有学习目标</h3>
+                <p>点击右上角管理按钮添加你的第一个学习目标吧！</p>
             </div>
         </div>
     </div>
